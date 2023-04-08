@@ -1,5 +1,6 @@
 const express=require('express')
 const nodemailer=require('nodemailer')
+const membermodel=require('model/teammodle.js')
 require('dotenv').config()
 const userRouter=express.Router();
 function getRandomInt(max) {
@@ -44,25 +45,6 @@ const sendOtp=async(req,res)=>{
     }
 }
 
-const resendOtp=(req,res)=>{
-      const otp2=getRandomInt(10000);
-      otp=otp2;
-      const useremail=req.body.email;
-      const data={
-            from: '"Sneha Jaiswal" <sneha2112046@akgec.ac.in>',  
-            to: useremail,
-            subject: "Resend OTP", 
-            text: "Hello", 
-            html: `<b>Your OTP is:${otp2}</b>`,          
-      }
-       transporter.sendMail(data,(error,info)=>{
-        if(error){
-            throw error;
-        }
-            console.log("email sent",info.messageId);
-            res.status(201).send();
-       });
-}
 
 const verifyOtp=async(req,res)=>{
   try{
@@ -86,14 +68,29 @@ const verifyOtp=async(req,res)=>{
   }
 }
 
+const register=async (req,res)=>{
+  await membermodel.create(req.body)
+  .then((result)=>{
+    console.log(result)
+    res.json({
+      message:"registered",
+      members:result
+    })
+    .catch((err)=>{
+      res.status(500).json({
+        message:err.message
+      })
+    })
+  })
+}
 
 userRouter
 .route('/userverification')
 .post(sendOtp)
 
 userRouter
-.route('/resendotp')
-.post(resendOtp)
+.route('/register')
+.post(register)
 
 userRouter
 .route('/verifyotp')
